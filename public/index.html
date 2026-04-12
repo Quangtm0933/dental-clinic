@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Đăng nhập - Nha Khoa</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-slate-100 h-screen flex items-center justify-center">
+    <div class="bg-white p-8 rounded-xl shadow-lg w-96">
+        <div class="text-center mb-6">
+            <i class="fa-solid fa-tooth text-4xl text-blue-600 mb-2"></i>
+            <h1 class="text-2xl font-bold">Đăng Nhập</h1>
+        </div>
+
+```
+    <form onsubmit="handleLogin(event)">
+        <input type="text" id="user" placeholder="Tên đăng nhập"
+            class="w-full mb-4 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500" required>
+
+        <input type="password" id="pass" placeholder="Mật khẩu"
+            class="w-full mb-6 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500" required>
+
+        <button type="submit"
+            class="w-full bg-blue-600 text-white font-bold py-2 rounded-lg hover:bg-blue-700">
+            Đăng Nhập
+        </button>
+    </form>
+</div>
+
+<script>
+    // Nếu đã đăng nhập thì chuyển luôn sang dashboard
+    if (localStorage.getItem('token')) {
+        window.location.href = 'dashboard.html';
+    }
+
+    async function handleLogin(e) {
+        e.preventDefault();
+
+        console.log("Đang gửi request...");
+
+        const username = document.getElementById('user').value;
+        const password = document.getElementById('pass').value;
+
+        try {
+            const res = await fetch('/dental-clinic/public/api/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    username: username,
+                    password: password
+                })
+            });
+
+            const data = await res.json();
+            console.log("Response:", data);
+
+            if (data.status === 'success') {
+                localStorage.setItem('token', data.token);
+                localStorage.setItem('role', data.user.role);
+                localStorage.setItem('fullName', data.user.full_name);
+                window.location.href = 'dashboard.html';
+            } else {
+                alert(data.message);
+            }
+        } catch (err) {
+            console.error("Lỗi fetch:", err);
+            alert("Không gọi được API!");
+        }
+    }
+</script>
+```
+
+</body>
+</html>

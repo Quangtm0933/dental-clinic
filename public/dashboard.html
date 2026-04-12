@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Hệ thống Quản lý Dental Clinic - Bản Đầy Đủ 100%</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    <style>
+        .modal { display: none; position: fixed; z-index: 50; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(3px); }
+        .modal.active { display: flex; align-items: center; justify-content: center; }
+        .panel { display: none; }
+        .panel.active { display: block; }
+        /* Hiệu ứng scroll bar mượt */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+    </style>
+</head>
+<body class="bg-slate-50 flex h-screen overflow-hidden font-sans text-slate-900">
+
+    <aside class="w-64 bg-slate-900 text-white flex flex-col shadow-xl z-10">
+        <div class="p-6 border-b border-slate-700">
+            <h2 class="text-xl font-bold flex items-center gap-2">
+                <i class="fa-solid fa-tooth text-blue-400"></i> Dental Clinic
+            </h2>
+            <p class="text-xs text-slate-400 mt-2 italic border-l-2 border-blue-500 pl-2">
+                Chào: <span id="lblUser" class="text-blue-300 font-semibold">...</span>
+            </p>
+        </div>
+        
+        <nav class="flex-1 p-4 space-y-2" id="navMenu">
+            <p class="text-[10px] uppercase font-bold text-slate-500 px-4 mb-1">Chức năng chính</p>
+            <button onclick="switchTab('patients')" class="w-full text-left px-4 py-3 rounded-lg bg-blue-600 transition flex items-center gap-3" data-tab="patients">
+                <i class="fa-solid fa-users w-5"></i> Bệnh nhân
+            </button>
+            <button onclick="switchTab('payments')" class="w-full text-left px-4 py-3 rounded-lg hover:bg-slate-800 transition flex items-center gap-3" data-tab="payments">
+                <i class="fa-solid fa-cash-register w-5"></i> Thanh toán
+            </button>
+            <button onclick="switchTab('history')" class="w-full text-left px-4 py-3 rounded-lg hover:bg-slate-800 transition flex items-center gap-3" data-tab="history">
+                <i class="fa-solid fa-file-invoice-dollar w-5"></i> Lịch sử hóa đơn
+            </button>
+
+            <div id="adminMenu" class="hidden space-y-2 pt-4 border-t border-slate-800 mt-4">
+                <p class="text-[10px] uppercase font-bold text-slate-500 px-4 mb-1">Quản trị hệ thống</p>
+                <button onclick="switchTab('doctors')" class="w-full text-left px-4 py-3 rounded-lg hover:bg-slate-800 transition flex items-center gap-3" data-tab="doctors">
+                    <i class="fa-solid fa-user-doctor w-5"></i> Bác sĩ
+                </button>
+                <button onclick="switchTab('services')" class="w-full text-left px-4 py-3 rounded-lg hover:bg-slate-800 transition flex items-center gap-3" data-tab="services">
+                    <i class="fa-solid fa-tags w-5"></i> Dịch vụ & Giá
+                </button>
+                <button onclick="switchTab('stats')" class="w-full text-left px-4 py-3 rounded-lg hover:bg-slate-800 transition flex items-center gap-3" data-tab="stats">
+                    <i class="fa-solid fa-chart-line w-5"></i> Thống kê doanh thu
+                </button>
+            </div>
+
+            <button onclick="logout()" class="w-full text-left px-4 py-3 rounded-lg hover:bg-red-900/50 text-red-400 mt-10 transition flex items-center gap-3">
+                <i class="fa-solid fa-power-off w-5"></i> Thoát hệ thống
+            </button>
+        </nav>
+    </aside>
+
+    <main class="flex-1 p-8 overflow-y-auto">
+        
+        <section id="patients" class="panel active">
+            <div class="flex justify-between items-center mb-8">
+                <h1 class="text-3xl font-bold">Quản lý Bệnh nhân</h1>
+                <button onclick="openModal('patient')" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg shadow-lg font-bold flex items-center gap-2">
+                    <i class="fa-solid fa-plus"></i> Thêm Bệnh nhân
+                </button>
+            </div>
+            <div class="mb-6 relative max-w-md">
+                <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-400"></i>
+                <input type="text" onkeyup="handleSearch('tblPatients', this.value)" placeholder="Tìm theo tên hoặc SĐT..." class="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+            </div>
+            <div class="bg-white rounded-xl shadow border overflow-hidden">
+                <table class="w-full text-left">
+                    <thead class="bg-slate-50 border-b text-slate-600 font-semibold uppercase text-xs">
+                        <tr><th class="p-4">Mã BN</th><th class="p-4">Họ tên</th><th class="p-4">SĐT</th><th class="p-4">Địa chỉ</th><th class="p-4">Tiền sử</th><th class="p-4 text-center">Hành động</th></tr>
+                    </thead>
+                    <tbody id="tblPatients" class="divide-y divide-slate-100"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <section id="payments" class="panel">
+            <h1 class="text-3xl font-bold mb-8">Quầy Thu Ngân</h1>
+            <div class="grid grid-cols-12 gap-6 h-[calc(100vh-200px)]">
+                <div class="col-span-4 bg-white rounded-xl shadow border flex flex-col overflow-hidden">
+                    <div class="p-4 border-b bg-slate-50 font-bold flex justify-between items-center">
+                        <span>Danh sách chờ thanh toán</span>
+                        <button onclick="loadPending()" class="text-blue-500 hover:rotate-180 transition-all duration-500"><i class="fa-solid fa-rotate"></i></button>
+                    </div>
+                    <div id="listPending" class="flex-1 overflow-y-auto p-2 space-y-2 bg-slate-50/50">
+                        </div>
+                </div>
+                <div id="billArea" class="col-span-8 bg-white rounded-xl shadow border p-8 flex flex-col hidden overflow-y-auto">
+                    <div id="invoiceContent" class="flex-1 p-4 bg-white">
+                        <div class="flex justify-between items-start mb-8">
+                            <div>
+                                <h2 class="text-3xl font-black text-slate-800 uppercase">Hóa Đơn</h2>
+                                <p id="billIDDisplay" class="text-blue-600 font-mono font-bold text-lg"></p>
+                            </div>
+                            <div class="text-right text-xs text-slate-400">
+                                <p class="font-bold text-slate-800">DENTAL CLINIC SYSTEM</p>
+                                <p>Hóa đơn điện tử nội bộ</p>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-8 mb-8 pb-8 border-b border-dashed">
+                            <div>
+                                <p class="text-[10px] uppercase font-bold text-slate-400 mb-1">Khách hàng</p>
+                                <p id="billPatient" class="text-lg font-bold text-slate-800"></p>
+                            </div>
+                            <div>
+                                <p class="text-[10px] uppercase font-bold text-slate-400 mb-1 text-right">Ngày lập</p>
+                                <p id="billDate" class="text-lg font-bold text-slate-800 text-right"></p>
+                            </div>
+                        </div>
+                        <table class="w-full mb-8">
+                            <thead>
+                                <tr class="text-left text-[10px] uppercase text-slate-400 border-b">
+                                    <th class="pb-2">Dịch vụ nha khoa</th>
+                                    <th class="pb-2 text-right">Đơn giá</th>
+                                    <th class="pb-2 text-center">SL</th>
+                                    <th class="pb-2 text-right">Thành tiền</th>
+                                </tr>
+                            </thead>
+                            <tbody id="billItems" class="text-slate-700"></tbody>
+                        </table>
+                        <div class="flex justify-end">
+                            <div class="w-64 border-t-2 border-slate-900 pt-4 text-right">
+                                <p class="text-sm text-slate-500">Tổng thanh toán:</p>
+                                <p id="billTotal" class="text-3xl font-black text-red-600">0 đ</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-8 flex justify-end gap-3 pt-6 border-t">
+                        <input type="hidden" id="currentRecordId">
+                        <button onclick="processCheckout()" class="bg-green-600 text-white px-12 py-4 rounded-xl font-bold shadow-lg hover:bg-green-700 transition-all transform hover:scale-105">
+                            <i class="fa-solid fa-check-double mr-2"></i> HOÀN TẤT & XUẤT HÓA ĐƠN
+                        </button>
+                    </div>
+                </div>
+                <div id="emptyBill" class="col-span-8 flex flex-col items-center justify-center border-2 border-dashed rounded-xl text-slate-300">
+                    <i class="fa-solid fa-receipt text-6xl mb-4 opacity-10"></i>
+                    <p class="font-semibold">Vui lòng chọn một bệnh nhân để lập hóa đơn</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="history" class="panel">
+            <h1 class="text-3xl font-bold mb-8">Lịch sử giao dịch</h1>
+            <div class="bg-white rounded-xl shadow border overflow-hidden">
+                <table class="w-full text-left">
+                    <thead class="bg-slate-50 border-b text-slate-600 font-semibold uppercase text-xs">
+                        <tr><th class="p-4">Mã HD</th><th class="p-4">Bệnh nhân</th><th class="p-4">Ngày thu</th><th class="p-4 text-right">Tổng tiền</th><th class="p-4">Nhân viên</th><th class="p-4 text-center">In lại</th></tr>
+                    </thead>
+                    <tbody id="tblHistory" class="divide-y divide-slate-100"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <section id="stats" class="panel">
+            <h1 class="text-3xl font-bold mb-8">Báo cáo doanh thu</h1>
+            <div class="bg-white p-6 rounded-xl shadow border mb-8 flex items-end gap-4">
+                <div class="flex-1 grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-[10px] font-bold uppercase text-slate-400">Từ ngày</label>
+                        <input type="date" id="statFrom" class="block w-full border p-2 rounded mt-1 focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-bold uppercase text-slate-400">Đến ngày</label>
+                        <input type="date" id="statTo" class="block w-full border p-2 rounded mt-1 focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                </div>
+                <button onclick="loadStats()" class="bg-blue-600 text-white px-8 py-2 rounded-lg font-bold hover:bg-blue-700 transition">XEM BÁO CÁO</button>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-white p-10 rounded-2xl shadow-sm border border-slate-100 flex flex-col items-center">
+                    <div class="w-12 h-12 bg-green-100 text-green-600 rounded-full flex items-center justify-center mb-4"><i class="fa-solid fa-money-bill-trend-up"></i></div>
+                    <p class="text-slate-400 uppercase text-xs font-bold tracking-widest">Tổng doanh thu</p>
+                    <h2 id="statRevenue" class="text-5xl font-black text-slate-800 mt-2">0 đ</h2>
+                </div>
+                <div class="bg-white p-10 rounded-2xl shadow-sm border border-slate-100 flex flex-col items-center">
+                    <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mb-4"><i class="fa-solid fa-user-check"></i></div>
+                    <p class="text-slate-400 uppercase text-xs font-bold tracking-widest">Số lượt khám</p>
+                    <h2 id="statVisits" class="text-5xl font-black text-slate-800 mt-2">0</h2>
+                </div>
+            </div>
+        </section>
+
+        <section id="doctors" class="panel">
+            <div class="flex justify-between items-center mb-8">
+                <h1 class="text-3xl font-bold">Danh mục Bác sĩ</h1>
+                <button onclick="openModal('doctor')" class="bg-indigo-600 text-white px-6 py-2 rounded-lg font-bold shadow-lg hover:bg-indigo-700 transition">+ Thêm Bác sĩ</button>
+            </div>
+            <div class="bg-white rounded-xl shadow border overflow-hidden">
+                <table class="w-full text-left">
+                    <thead class="bg-slate-50 border-b uppercase text-xs font-bold text-slate-500">
+                        <tr><th class="p-4">ID</th><th class="p-4">Họ tên</th><th class="p-4">Chuyên khoa</th><th class="p-4">SĐT</th><th class="p-4 text-center">Hành động</th></tr>
+                    </thead>
+                    <tbody id="tblDoctors" class="divide-y"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <section id="services" class="panel">
+            <div class="flex justify-between items-center mb-8">
+                <h1 class="text-3xl font-bold">Dịch vụ & Bảng giá</h1>
+                <button onclick="openModal('service')" class="bg-orange-600 text-white px-6 py-2 rounded-lg font-bold shadow-lg hover:bg-orange-700 transition">+ Thêm Dịch vụ</button>
+            </div>
+            <div class="bg-white rounded-xl shadow border overflow-hidden">
+                <table class="w-full text-left">
+                    <thead class="bg-slate-50 border-b uppercase text-xs font-bold text-slate-500">
+                        <tr><th class="p-4">ID</th><th class="p-4">Tên dịch vụ</th><th class="p-4 text-right">Đơn giá</th><th class="p-4">Trạng thái</th><th class="p-4 text-center">Hành động</th></tr>
+                    </thead>
+                    <tbody id="tblServices" class="divide-y"></tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+    <div id="patientModal" class="modal">
+        <div class="bg-white rounded-xl shadow-2xl w-[500px] overflow-hidden">
+            <div class="p-6 border-b bg-slate-50 flex justify-between items-center">
+                <h3 id="patientModalTitle" class="text-xl font-bold">Hồ sơ Bệnh Nhân</h3>
+                <button onclick="closeModal('patient')" class="text-2xl text-slate-400 hover:text-red-500">&times;</button>
+            </div>
+            <form id="patientForm" onsubmit="savePatient(event)" class="p-6 space-y-4">
+                <input type="hidden" id="patientId">
+                <div><label class="text-xs font-bold uppercase text-slate-400">Họ và Tên (*)</label><input type="text" id="p_full_name" class="w-full border p-2 rounded mt-1 outline-none focus:ring-2 focus:ring-blue-500" required></div>
+                <div><label class="text-xs font-bold uppercase text-slate-400">Số điện thoại (*)</label><input type="text" id="p_phone" class="w-full border p-2 rounded mt-1 outline-none focus:ring-2 focus:ring-blue-500" required></div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div><label class="text-xs font-bold uppercase text-slate-400">Ngày sinh</label><input type="date" id="p_dob" class="w-full border p-2 rounded mt-1 outline-none focus:ring-2 focus:ring-blue-500"></div>
+                    <div><label class="text-xs font-bold uppercase text-slate-400">Địa chỉ</label><input type="text" id="p_address" class="w-full border p-2 rounded mt-1 outline-none focus:ring-2 focus:ring-blue-500"></div>
+                </div>
+                <div><label class="text-xs font-bold uppercase text-slate-400">Tiền sử bệnh</label><textarea id="p_history" class="w-full border p-2 rounded mt-1 h-20 outline-none focus:ring-2 focus:ring-blue-500"></textarea></div>
+                <div class="pt-4 flex justify-end gap-3 border-t">
+                    <button type="button" onclick="closeModal('patient')" class="px-4 py-2 text-slate-500 font-bold">Hủy</button>
+                    <button type="submit" class="px-8 py-2 bg-blue-600 text-white rounded-lg font-bold">Lưu thông tin</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="doctorModal" class="modal">
+        <div class="bg-white rounded-xl shadow-2xl w-[500px] overflow-hidden">
+            <div class="p-6 border-b bg-indigo-50 flex justify-between items-center">
+                <h3 id="doctorModalTitle" class="text-xl font-bold">Thông tin Bác Sĩ</h3>
+                <button onclick="closeModal('doctor')" class="text-2xl text-slate-400 hover:text-red-500">&times;</button>
+            </div>
+            <form id="doctorForm" onsubmit="saveDoctor(event)" class="p-6 space-y-4">
+                <input type="hidden" id="doctorId">
+                <input type="text" id="d_full_name" placeholder="Họ tên bác sĩ (*)" class="w-full border p-2 rounded" required>
+                <input type="text" id="d_specialty" placeholder="Chuyên khoa (*)" class="w-full border p-2 rounded" required>
+                <input type="text" id="d_phone" placeholder="Số điện thoại" class="w-full border p-2 rounded">
+                <input type="email" id="d_email" placeholder="Email" class="w-full border p-2 rounded">
+                <button type="submit" class="w-full bg-indigo-600 text-white py-3 rounded-lg font-bold">Lưu bác sĩ</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="serviceModal" class="modal">
+        <div class="bg-white rounded-xl shadow-2xl w-[400px] overflow-hidden">
+            <div class="p-6 border-b bg-orange-50 flex justify-between items-center">
+                <h3 id="serviceModalTitle" class="text-xl font-bold">Dịch vụ nha khoa</h3>
+                <button onclick="closeModal('service')" class="text-2xl text-slate-400 hover:text-red-500">&times;</button>
+            </div>
+            <form id="serviceForm" onsubmit="saveService(event)" class="p-6 space-y-4">
+                <input type="hidden" id="serviceId">
+                <input type="text" id="s_name" placeholder="Tên dịch vụ (*)" class="w-full border p-2 rounded" required>
+                <input type="number" id="s_price" placeholder="Đơn giá (VNĐ) (*)" class="w-full border p-2 rounded" required>
+                <div class="flex items-center gap-2 bg-slate-50 p-3 rounded-lg"><input type="checkbox" id="s_active" checked> <label class="text-sm font-bold">Đang kinh doanh</label></div>
+                <button type="submit" class="w-full bg-orange-600 text-white py-3 rounded-lg font-bold shadow-lg">Lưu dịch vụ</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="examinationModal" class="modal">
+        <div class="bg-white rounded-xl shadow-2xl w-[600px] overflow-hidden">
+            <div class="p-6 border-b bg-blue-900 text-white flex justify-between items-center">
+                <h3 class="text-xl font-bold">Lập hồ sơ: <span id="examPatientName" class="text-blue-300"></span></h3>
+                <button onclick="closeModal('examination')" class="text-2xl opacity-50 hover:opacity-100">&times;</button>
+            </div>
+            <form id="examinationForm" onsubmit="saveExamination(event)" class="p-6 space-y-4">
+                <input type="hidden" id="examPatientId">
+                <div>
+                    <label class="text-xs font-bold uppercase text-slate-400">Chẩn đoán của bác sĩ (*)</label>
+                    <textarea id="examDiagnosis" class="w-full border p-2 rounded mt-1 h-20 outline-none focus:ring-2 focus:ring-blue-500" required placeholder="Nhập tình trạng răng miệng bệnh nhân..."></textarea>
+                </div>
+                <div>
+                    <label class="text-xs font-bold uppercase text-slate-400">Chỉ định dịch vụ (*)</label>
+                    <div class="flex gap-2 mt-1">
+                        <select id="examServiceSelect" class="flex-1 border p-2 rounded outline-none focus:ring-2 focus:ring-blue-500"></select>
+                        <button type="button" onclick="addServiceToList()" class="bg-slate-800 text-white px-6 rounded-lg font-bold hover:bg-black transition">+</button>
+                    </div>
+                </div>
+                <div class="border rounded-lg overflow-hidden bg-slate-50">
+                    <table class="w-full text-sm">
+                        <thead class="bg-slate-200 text-[10px] uppercase font-bold">
+                            <tr><th class="p-2 text-left">Tên dịch vụ</th><th class="p-2 text-center">SL</th><th class="p-2 text-center">Xóa</th></tr>
+                        </thead>
+                        <tbody id="examServiceList"></tbody>
+                    </table>
+                </div>
+                <div class="pt-4 border-t flex justify-end gap-3">
+                    <button type="button" onclick="closeModal('examination')" class="px-4 py-2 text-slate-500 font-bold">Hủy</button>
+                    <button type="submit" class="px-8 py-2 bg-slate-900 text-white rounded-lg font-bold shadow-lg hover:bg-black transition-all">HOÀN TẤT & CHUYỂN THANH TOÁN</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <script>
+    const API_BASE = '/dental-clinic/public/api';
+    const token = localStorage.getItem('token');
+    const role = localStorage.getItem('role');
+
+    // 1. KHỞI TẠO
+    document.addEventListener('DOMContentLoaded', () => {
+        if (!token) { window.location.href = 'index.html'; return; }
+        document.getElementById('lblUser').innerText = localStorage.getItem('fullName') || 'Cán bộ';
+        if (role === 'ADMIN') document.getElementById('adminMenu').classList.remove('hidden');
+        loadPatients(); 
+    });
+
+    // 2. TIỆN ÍCH
+    function formatID(id, prefix) { return prefix + id.toString().padStart(2, '0'); }
+    function formatMoney(amount) {
+        const number = Number(amount);
+        return isNaN(number) ? "0 đ" : new Intl.NumberFormat('vi-VN').format(number) + " đ";
+    }
+
+    function switchTab(tabId) {
+        document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+        document.getElementById(tabId).classList.add('active');
+        document.querySelectorAll('#navMenu button').forEach(b => {
+            b.classList.remove('bg-blue-600');
+            if (b.getAttribute('data-tab') === tabId) b.classList.add('bg-blue-600');
+        });
+        if (tabId === 'patients') loadPatients();
+        if (tabId === 'doctors') loadDoctors();
+        if (tabId === 'services') loadServices();
+        if (tabId === 'payments') loadPending();
+        if (tabId === 'history') loadHistory();
+    }
+
+    // 3. QUẢN LÝ BỆNH NHÂN & KHÁM BỆNH
+    async function loadPatients() {
+        try {
+            const res = await fetch(`${API_BASE}/patients`, { headers: { 'Authorization': token } });
+            const json = await res.json();
+            const tbody = document.getElementById('tblPatients');
+            tbody.innerHTML = json.data.map(p => `
+                <tr class="hover:bg-blue-50 transition border-b">
+                    <td class="p-4 font-mono font-bold text-blue-600">${formatID(p.id, 'BN')}</td>
+                    <td class="p-4 font-bold text-slate-800">${p.full_name}</td>
+                    <td class="p-4 font-semibold">${p.phone}</td>
+                    <td class="p-4 text-xs text-slate-500">${p.address || '---'}</td>
+                    <td class="p-4 text-xs italic text-slate-400">${p.medical_history || '---'}</td>
+                    <td class="p-4 text-center space-x-1">
+                        <button onclick="openExaminationModal(${p.id}, '${p.full_name}')" class="text-indigo-600 p-2 hover:bg-indigo-50 rounded"><i class="fa-solid fa-stethoscope"></i></button>
+                        <button onclick="editPatient(${p.id})" class="text-amber-500 p-2"><i class="fa-solid fa-pen"></i></button>
+                        <button onclick="deletePatient(${p.id})" class="text-red-500 p-2"><i class="fa-solid fa-trash"></i></button>
+                    </td>
+                </tr>`).join('');
+        } catch (e) { console.error(e); }
+    }
+
+    let selectedServicesForExam = [];
+    async function openExaminationModal(patientId, patientName) {
+        document.getElementById('examPatientId').value = patientId;
+        document.getElementById('examPatientName').innerText = patientName;
+        document.getElementById('examDiagnosis').value = "";
+        selectedServicesForExam = [];
+        renderExamServiceList();
+        const res = await fetch(`${API_BASE}/services`, { headers: {'Authorization': token} });
+        const json = await res.json();
+        document.getElementById('examServiceSelect').innerHTML = json.data.map(s => `<option value="${s.id}" data-name="${s.service_name}">${s.service_name}</option>`).join('');
+        document.getElementById('examinationModal').classList.add('active');
+    }
+
+    function addServiceToList() {
+        const select = document.getElementById('examServiceSelect');
+        const serviceId = select.value;
+        const serviceName = select.options[select.selectedIndex].getAttribute('data-name');
+        const exists = selectedServicesForExam.find(s => s.service_id == serviceId);
+        if(exists) exists.quantity++;
+        else selectedServicesForExam.push({ service_id: serviceId, service_name: serviceName, quantity: 1 });
+        renderExamServiceList();
+    }
+
+    function renderExamServiceList() {
+        document.getElementById('examServiceList').innerHTML = selectedServicesForExam.map((s, i) => `
+            <tr class="border-b">
+                <td class="p-2 font-semibold">${s.service_name}</td>
+                <td class="p-2 text-center">x${s.quantity}</td>
+                <td class="p-2 text-center"><button type="button" onclick="selectedServicesForExam.splice(${i},1);renderExamServiceList();" class="text-red-500"><i class="fa-solid fa-xmark"></i></button></td>
+            </tr>`).join('');
+    }
+
+    async function saveExamination(e) {
+        e.preventDefault();
+        if(selectedServicesForExam.length === 0) return alert("Vui lòng chọn dịch vụ!");
+        const data = { patient_id: document.getElementById('examPatientId').value, doctor_id: 1, diagnosis: document.getElementById('examDiagnosis').value, services: selectedServicesForExam };
+        const res = await fetch(`${API_BASE}/payments`, { method: 'POST', headers: {'Content-Type': 'application/json', 'Authorization': token}, body: JSON.stringify(data) });
+        if(res.ok) { alert("Đã chuyển sang Thanh toán!"); closeModal('examination'); switchTab('payments'); }
+    }
+
+    // 4. QUẢN LÝ THANH TOÁN (BILLING) - ĐÃ SỬA LỖI NaN
+    let currentBillServices = []; 
+
+    async function loadPending() {
+        const res = await fetch(`${API_BASE}/payments/pending`, { headers: {'Authorization': token} });
+        const json = await res.json();
+        document.getElementById('listPending').innerHTML = json.data.map(item => `
+            <div onclick="getBillDetails(${item.id}, '${item.patient_name}')" class="p-4 bg-white border rounded-lg cursor-pointer hover:border-blue-500 transition shadow-sm group">
+                <p class="text-xs font-mono text-blue-600 font-bold">${formatID(item.id, 'HD')}</p>
+                <p class="font-bold group-hover:text-blue-600">${item.patient_name}</p>
+            </div>`).join('') || '<p class="p-10 text-center text-slate-400">Trống</p>';
+    }
+
+    async function getBillDetails(recordId, patientName) {
+        document.getElementById('billArea').classList.remove('hidden');
+        document.getElementById('emptyBill').classList.add('hidden');
+        document.getElementById('billIDDisplay').innerText = formatID(recordId, 'HD');
+        document.getElementById('billPatient').innerText = patientName;
+        document.getElementById('billDate').innerText = new Date().toLocaleDateString('vi-VN');
+        document.getElementById('currentRecordId').value = recordId;
+
+        try {
+            const res = await fetch(`${API_BASE}/payments/${recordId}`, { headers: {'Authorization': token} });
+            const json = await res.json();
+            currentBillServices = json.data || [];
+            
+            let total = 0;
+            const tbody = document.getElementById('billItems');
+            tbody.innerHTML = currentBillServices.map(s => {
+                const price = parseFloat(s.snapshot_price) || 0;
+                const qty = parseInt(s.quantity) || 0;
+                const sub = price * qty;
+                total += sub;
+                return `
+                    <tr class="border-b">
+                        <td class="py-4 font-bold">${s.service_name}</td>
+                        <td class="py-4 text-right">${formatMoney(price)}</td>
+                        <td class="py-4 text-center">x${qty}</td>
+                        <td class="py-4 text-right font-bold text-blue-600">${formatMoney(sub)}</td>
+                    </tr>`;
+            }).join('');
+            document.getElementById('billTotal').innerText = formatMoney(total);
+        } catch (e) { console.error(e); }
+    }
+
+    async function processCheckout() {
+        const recordId = document.getElementById('currentRecordId').value;
+        if(!confirm("Xác nhận thanh toán?")) return;
+        const res = await fetch(`${API_BASE}/payments`, { method: 'POST', headers: {'Content-Type': 'application/json', 'Authorization': token}, body: JSON.stringify({ record_id: recordId, services: currentBillServices }) });
+        if (res.ok) {
+            html2pdf().from(document.getElementById('invoiceContent')).save();
+            alert("Thành công!");
+            loadPending();
+            switchTab('history'); // Nhảy sang lịch sử ngay sau khi trả tiền
+        }
+    }
+
+    /**
+ * 1. Tải danh sách lịch sử hóa đơn (Tab Lịch sử)
+ * Chức năng: Lấy dữ liệu từ StatsController và đổ vào bảng tblHistory
+ */
+async function loadHistory() {
+    try {
+        // Gọi API lấy dữ liệu thống kê (bao gồm mảng history)
+        const res = await fetch(`${API_BASE}/stats`, { 
+            headers: {'Authorization': token} 
+        });
+        const json = await res.json();
+        
+        const tbody = document.getElementById('tblHistory');
+        
+        // Kiểm tra nếu không có dữ liệu
+        if (!json.history || json.history.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6" class="p-10 text-center text-slate-400 italic font-semibold">Chưa có giao dịch nào được thực hiện</td></tr>';
+            return;
+        }
+
+        // Đổ dữ liệu vào bảng
+        tbody.innerHTML = json.history.map(h => `
+            <tr class="border-b hover:bg-slate-50 transition group">
+                <td class="p-4 font-mono font-bold text-blue-600">${formatID(h.id, 'HD')}</td>
+                <td class="p-4">
+                    <p class="font-bold text-slate-800">${h.patient_name}</p>
+                    <p class="text-[10px] text-slate-400">ID Bệnh nhân: BN${h.patient_id || '??'}</p>
+                </td>
+                <td class="p-4 text-sm text-slate-600">
+                    ${new Date(h.payment_date || h.created_at).toLocaleString('vi-VN')}
+                </td>
+                <td class="p-4 text-right font-black text-red-600">
+                    ${formatMoney(h.total_amount)}
+                </td>
+                <td class="p-4 text-sm">
+                    <span class="bg-slate-100 px-2 py-1 rounded text-slate-600 italic">
+                        <i class="fa-solid fa-user-tie text-[10px]"></i> ${h.staff_name || 'Hệ thống'}
+                    </span>
+                </td>
+                <td class="p-4 text-center">
+                    <div class="flex justify-center gap-3">
+                        <button onclick="getBillDetails(${h.id}, '${h.patient_name}')" 
+                                class="text-blue-500 hover:bg-blue-50 p-2 rounded-lg transition shadow-sm" 
+                                title="Xem lại hóa đơn">
+                            <i class="fa-solid fa-eye"></i>
+                        </button>
+                        
+                        <button onclick="deleteInvoice(${h.id})" 
+                                class="text-red-400 hover:text-red-600 hover:bg-red-50 p-2 rounded-lg transition shadow-sm" 
+                                title="Xóa vĩnh viễn">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>`).join('');
+
+    } catch (error) {
+        console.error("Lỗi loadHistory:", error);
+    }
+}
+
+/**
+ * 2. Hàm xử lý xóa hóa đơn
+ * Chức năng: Gửi lệnh DELETE về Server và cập nhật lại giao diện
+ */
+async function deleteInvoice(id) {
+    // Xác nhận trước khi xóa (Cảnh báo mạnh)
+    const isConfirmed = confirm(`CẢNH BÁO: Bạn đang thực hiện xóa Hóa đơn ${formatID(id, 'HD')}.\n\nHành động này sẽ làm giảm tổng doanh thu và không thể hoàn tác. Bạn chắc chắn chứ?`);
+    
+    if (!isConfirmed) return;
+
+    try {
+        const res = await fetch(`${API_BASE}/payments/${id}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': token }
+        });
+
+        const result = await res.json();
+
+        if (res.ok) {
+            alert("Đã xóa hóa đơn thành công!");
+            
+            // Cập nhật lại 2 tab ngay lập tức
+            await loadHistory(); // Làm mới bảng lịch sử
+            
+            // Nếu bạn đang ở tab Thống kê, nó cũng sẽ cập nhật lại con số doanh thu
+            if (typeof loadStats === "function") {
+                loadStats(); 
+            }
+        } else {
+            alert("Lỗi: " + (result.message || "Không thể xóa hóa đơn này. Vui lòng liên hệ Admin."));
+        }
+    } catch (error) {
+        console.error("Lỗi khi thực hiện xóa:", error);
+        alert("Lỗi kết nối hệ thống khi xóa hóa đơn!");
+    }
+}
+
+    async function loadStats() {
+        const from = document.getElementById('statFrom').value;
+        const to = document.getElementById('statTo').value;
+        if(!from || !to) return;
+        const res = await fetch(`${API_BASE}/stats?from=${from}&to=${to}`, { headers: {'Authorization': token} });
+        const json = await res.json();
+        document.getElementById('statRevenue').innerText = formatMoney(json.data.total_revenue);
+        document.getElementById('statVisits').innerText = json.data.total_visits;
+    }
+
+    // 6. CÁC HÀM CƠ BẢN KHÁC (Doctors, Services, Modals)
+    async function loadDoctors() { /* ... Giữ nguyên logic Fetch cũ nhưng nhớ map data ... */ }
+    async function loadServices() { /* ... Giữ nguyên logic Fetch cũ nhưng nhớ map data ... */ }
+   // Sửa hàm openModal để xóa trắng ID cũ khi bấm nút "Thêm"
+function openModal(type) {
+    if (type === 'patient') {
+        document.getElementById('patientId').value = ""; // Xóa sạch ID cũ
+        document.getElementById('patientForm').reset();   // Xóa sạch chữ trong ô nhập
+        document.getElementById('patientModalTitle').innerText = "Thêm Bệnh Nhân Mới";
+    }
+    document.getElementById(type + 'Modal').classList.add('active');
+}
+
+
+
+    function closeModal(type) { document.getElementById(type + 'Modal').classList.remove('active'); }
+    function logout() { localStorage.clear(); window.location.href = 'index.html'; }
+    function handleSearch(t, k) { const low = k.toLowerCase(); document.querySelectorAll(`#${t} tr`).forEach(r => r.style.display = r.innerText.toLowerCase().includes(low) ? '' : 'none'); }
+// TẢI DANH SÁCH BÁC SĨ
+async function loadDoctors() {
+    try {
+        const res = await fetch(`${API_BASE}/doctors`, { headers: {'Authorization': token} });
+        const json = await res.json();
+        const tbody = document.getElementById('tblDoctors');
+        
+        tbody.innerHTML = json.data.map(d => `
+            <tr class="border-b hover:bg-indigo-50 transition">
+                <td class="p-4 font-mono font-bold text-indigo-600">${formatID(d.id, 'BS')}</td>
+                <td class="p-4 font-bold">${d.full_name}</td>
+                <td class="p-4 text-indigo-700 font-semibold">${d.specialty}</td>
+                <td class="p-4">${d.phone || ''}</td>
+                <td class="p-4 text-center space-x-2">
+                    <button onclick="editDoctor(${d.id})" class="text-amber-500 hover:bg-amber-50 p-2 rounded"><i class="fa-solid fa-pen"></i></button>
+                    <button onclick="deleteDoctor(${d.id})" class="text-red-500 hover:bg-red-50 p-2 rounded"><i class="fa-solid fa-trash"></i></button>
+                </td>
+            </tr>`).join('');
+    } catch (e) { console.error("Lỗi tải bác sĩ:", e); }
+}
+
+// TẢI DANH SÁCH DỊCH VỤ
+async function loadServices() {
+    try {
+        const res = await fetch(`${API_BASE}/services`, { headers: {'Authorization': token} });
+        const json = await res.json();
+        const tbody = document.getElementById('tblServices');
+        
+        tbody.innerHTML = json.data.map(s => `
+            <tr class="border-b hover:bg-orange-50 transition">
+                <td class="p-4 font-mono font-bold text-orange-600">${formatID(s.id, 'DV')}</td>
+                <td class="p-4 font-bold">${s.service_name}</td>
+                <td class="p-4 text-right font-bold text-green-600">${formatMoney(s.unit_price)}</td>
+                <td class="p-4">
+                    <span class="px-2 py-1 rounded text-[10px] font-bold ${s.is_active == 1 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}">
+                        ${s.is_active == 1 ? 'ĐANG BÁN' : 'NGỪNG'}
+                    </span>
+                </td>
+                <td class="p-4 text-center space-x-2">
+                    <button onclick="editService(${s.id})" class="text-blue-500 hover:bg-blue-50 p-2 rounded"><i class="fa-solid fa-pen"></i></button>
+                    <button onclick="deleteService(${s.id})" class="text-red-500 hover:bg-red-50 p-2 rounded"><i class="fa-solid fa-trash"></i></button>
+                </td>
+            </tr>`).join('');
+    } catch (e) { console.error("Lỗi tải dịch vụ:", e); }
+}
+
+// Hàm xóa chung cho các mục
+async function deleteItem(resource, id, reloadFunc) {
+    if(!confirm(`Xác nhận xóa mục này? Dữ liệu đã xóa không thể khôi phục.`)) return;
+    try {
+        const res = await fetch(`${API_BASE}/${resource}/${id}`, {
+            method: 'DELETE',
+            headers: {'Authorization': token}
+        });
+        if(res.ok) {
+            alert("Đã xóa thành công!");
+            reloadFunc(); // Gọi hàm tải lại dữ liệu (loadPatients, loadDoctors...)
+        } else {
+            alert("Không thể xóa. Mục này có thể đang được sử dụng trong hóa đơn.");
+        }
+    } catch (e) { console.error(e); }
+}
+
+// Gán vào các nút cụ thể
+function deletePatient(id) { deleteItem('patients', id, loadPatients); }
+function deleteDoctor(id) { deleteItem('doctors', id, loadDoctors); }
+function deleteService(id) { deleteItem('services', id, loadServices); }
+
+
+// Sửa Bác sĩ
+async function editDoctor(id) {
+    const res = await fetch(`${API_BASE}/doctors/${id}`, { headers: {'Authorization': token} });
+    const json = await res.json();
+    const d = json.data;
+    
+    document.getElementById('doctorId').value = d.id;
+    document.getElementById('d_full_name').value = d.full_name;
+    document.getElementById('d_specialty').value = d.specialty;
+    document.getElementById('d_phone').value = d.phone;
+    document.getElementById('d_email').value = d.email;
+    
+    document.getElementById('doctorModalTitle').innerText = "Cập nhật bác sĩ";
+    openModal('doctor');
+}
+
+// Sửa Dịch vụ
+async function editService(id) {
+    const res = await fetch(`${API_BASE}/services/${id}`, { headers: {'Authorization': token} });
+    const json = await res.json();
+    const s = json.data;
+    
+    document.getElementById('serviceId').value = s.id;
+    document.getElementById('s_name').value = s.service_name;
+    document.getElementById('s_price').value = s.unit_price;
+    document.getElementById('s_active').checked = s.is_active == 1;
+    
+    document.getElementById('serviceModalTitle').innerText = "Cập nhật dịch vụ";
+    openModal('service');
+}
+async function saveDoctor(e) {
+    e.preventDefault();
+    const id = document.getElementById('doctorId').value;
+    const data = {
+        full_name: document.getElementById('d_full_name').value,
+        specialty: document.getElementById('d_specialty').value,
+        phone: document.getElementById('d_phone').value,
+        email: document.getElementById('d_email').value
+    };
+    
+    const method = id ? 'PUT' : 'POST';
+    const url = id ? `${API_BASE}/doctors/${id}` : `${API_BASE}/doctors`;
+    
+    const res = await fetch(url, {
+        method: method,
+        headers: {'Content-Type': 'application/json', 'Authorization': token},
+        body: JSON.stringify(data)
+    });
+    
+    if(res.ok) { closeModal('doctor'); loadDoctors(); }
+}
+
+async function saveService(e) {
+    e.preventDefault();
+    const id = document.getElementById('serviceId').value;
+    const data = {
+        service_name: document.getElementById('s_name').value,
+        unit_price: document.getElementById('s_price').value,
+        is_active: document.getElementById('s_active').checked ? 1 : 0
+    };
+    
+    const method = id ? 'PUT' : 'POST';
+    const url = id ? `${API_BASE}/services/${id}` : `${API_BASE}/services`;
+    
+    const res = await fetch(url, {
+        method: method,
+        headers: {'Content-Type': 'application/json', 'Authorization': token},
+        body: JSON.stringify(data)
+    });
+    
+    if(res.ok) { closeModal('service'); loadServices(); }
+}
+async function editPatient(id) {
+    try {
+        // 1. Gọi API lấy thông tin chi tiết của 1 bệnh nhân
+        const res = await fetch(`${API_BASE}/patients/${id}`, { 
+            headers: {'Authorization': token} 
+        });
+        const json = await res.json();
+        const p = json.data;
+
+        // 2. Điền dữ liệu vào các ô Input trong Modal
+        document.getElementById('patientId').value = p.id; // Quan trọng: ID để biết là đang sửa
+        document.getElementById('p_full_name').value = p.full_name;
+        document.getElementById('p_phone').value = p.phone;
+        document.getElementById('p_dob').value = p.dob;
+        document.getElementById('p_address').value = p.address;
+        document.getElementById('p_history').value = p.medical_history;
+
+        // 3. Đổi tiêu đề Modal cho đúng ngữ cảnh
+        document.getElementById('patientModalTitle').innerText = "Cập nhật hồ sơ bệnh nhân";
+
+        // 4. Mở Modal lên
+        openModal('patient');
+    } catch (e) {
+        console.error("Lỗi lấy thông tin bệnh nhân:", e);
+        alert("Không thể tải dữ liệu bệnh nhân!");
+    }
+}
+async function savePatient(e) {
+    e.preventDefault(); // Ngăn trang web tải lại (Reload)
+
+    // 1. Lấy ID từ ô ẩn (Nếu có ID là Sửa, không có là Thêm mới)
+    const id = document.getElementById('patientId').value;
+    
+    // 2. Thu thập dữ liệu từ các ô nhập liệu
+    const data = {
+        full_name: document.getElementById('p_full_name').value.trim(),
+        phone: document.getElementById('p_phone').value.trim(),
+        dob: document.getElementById('p_dob').value,
+        address: document.getElementById('p_address').value.trim(),
+        medical_history: document.getElementById('p_history').value.trim()
+    };
+
+    // Kiểm tra nhanh dữ liệu đầu vào (Validation)
+    if (!data.full_name || !data.phone) {
+        alert("Vui lòng điền đầy đủ Họ tên và Số điện thoại!");
+        return;
+    }
+
+    // 3. Xác định phương thức (PUT = Sửa, POST = Thêm)
+    const method = id ? 'PUT' : 'POST';
+    const url = id ? `${API_BASE}/patients/${id}` : `${API_BASE}/patients`;
+
+    try {
+        // 4. Gửi yêu cầu tới Backend
+        const res = await fetch(url, {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': token
+            },
+            body: JSON.stringify(data)
+        });
+
+        const result = await res.json(); // Đọc phản hồi từ Server
+
+        if (res.ok) {
+            // THÀNH CÔNG
+            alert(id ? "Đã cập nhật thông tin bệnh nhân!" : "Đã thêm bệnh nhân mới thành công!");
+            
+            // Tắt Modal
+            closeModal('patient');
+            
+            // Xóa sạch ID cũ trong ô ẩn để lần bấm "Thêm" sau không bị kẹt dữ liệu cũ
+            document.getElementById('patientId').value = ""; 
+
+            // QUAN TRỌNG: Tải lại danh sách để dữ liệu hiện ngay trên bảng
+            await loadPatients(); 
+        } else {
+            // THẤT BẠI (Lỗi logic từ Server)
+            alert("Lỗi: " + (result.message || "Không thể lưu dữ liệu. Vui lòng kiểm tra lại!"));
+        }
+    } catch (error) {
+        // LỖI HỆ THỐNG (Mất mạng, Server chết...)
+        console.error("Lỗi savePatient:", error);
+        alert("Lỗi kết nối hệ thống! Hãy chắc chắn Apache/MySQL đang chạy.");
+    }
+}
+</script>
+</body>
+</html>
