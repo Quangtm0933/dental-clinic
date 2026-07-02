@@ -37,7 +37,7 @@ class Stats {
         return $db->query($sql)->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    // Dữ liệu biểu đồ hàng ngày (Nếu sau này bạn muốn vẽ biểu đồ)
+    // Dữ liệu biểu đồ hàng ngày 
     public static function getDailyRevenue($from, $to) {
         $db = Database::getConnection();
         $sql = "SELECT DATE(payment_date) as day, COUNT(*) as count, SUM(total_amount) as revenue 

@@ -53,6 +53,9 @@
                 <button onclick="switchTab('stats')" class="w-full text-left px-4 py-3 rounded-lg hover:bg-slate-800 transition flex items-center gap-3" data-tab="stats">
                     <i class="fa-solid fa-chart-line w-5"></i> Thống kê doanh thu
                 </button>
+                <button onclick="switchTab('accounts')" class="w-full text-left px-4 py-3 rounded-lg hover:bg-slate-800 transition flex items-center gap-3" data-tab="accounts">
+                    <i class="fa-solid fa-user-shield w-5"></i> Quản lý tài khoản
+                </button>
             </div>
 
             <button onclick="logout()" class="w-full text-left px-4 py-3 rounded-lg hover:bg-red-900/50 text-red-400 mt-10 transition flex items-center gap-3">
@@ -66,7 +69,7 @@
         <section id="patients" class="panel active">
             <div class="flex justify-between items-center mb-8">
                 <h1 class="text-3xl font-bold">Quản lý Bệnh nhân</h1>
-                <button onclick="openModal('patient')" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg shadow-lg font-bold flex items-center gap-2">
+                <button onclick="prepareAddPatient()" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg shadow-lg font-bold flex items-center gap-2">
                     <i class="fa-solid fa-plus"></i> Thêm Bệnh nhân
                 </button>
             </div>
@@ -193,7 +196,7 @@
         <section id="doctors" class="panel">
             <div class="flex justify-between items-center mb-8">
                 <h1 class="text-3xl font-bold">Danh mục Bác sĩ</h1>
-                <button onclick="openModal('doctor')" class="bg-indigo-600 text-white px-6 py-2 rounded-lg font-bold shadow-lg hover:bg-indigo-700 transition">+ Thêm Bác sĩ</button>
+                <button onclick="prepareAddDoctor()" class="bg-indigo-600 text-white px-6 py-2 rounded-lg font-bold shadow-lg hover:bg-indigo-700 transition">+ Thêm Bác sĩ</button>
             </div>
             <div class="bg-white rounded-xl shadow border overflow-hidden">
                 <table class="w-full text-left">
@@ -208,7 +211,7 @@
         <section id="services" class="panel">
             <div class="flex justify-between items-center mb-8">
                 <h1 class="text-3xl font-bold">Dịch vụ & Bảng giá</h1>
-                <button onclick="openModal('service')" class="bg-orange-600 text-white px-6 py-2 rounded-lg font-bold shadow-lg hover:bg-orange-700 transition">+ Thêm Dịch vụ</button>
+                <button onclick="prepareAddService()" class="bg-orange-600 text-white px-6 py-2 rounded-lg font-bold shadow-lg hover:bg-orange-700 transition">+ Thêm Dịch vụ</button>
             </div>
             <div class="bg-white rounded-xl shadow border overflow-hidden">
                 <table class="w-full text-left">
@@ -218,7 +221,34 @@
                     <tbody id="tblServices" class="divide-y"></tbody>
                 </table>
             </div>
+
         </section>
+        <section id="accounts" class="panel">
+    <div class="flex justify-between items-center mb-8">
+        <h1 class="text-3xl font-bold">Danh sách Tài khoản</h1>
+        <button onclick="prepareAddAccount()" class="bg-purple-600 text-white px-6 py-2 rounded-lg font-bold shadow-lg hover:bg-purple-700 transition">+ Thêm Tài khoản</button>
+    </div>
+    <div class="mb-6 relative max-w-md">
+        <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-400"></i>
+        <input type="text" onkeyup="loadAccounts(this.value)" placeholder="Tìm tên hoặc username..." class="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+    </div>
+    <div class="bg-white rounded-xl shadow border overflow-hidden">
+        <table class="w-full text-left">
+            <thead class="bg-slate-50 border-b uppercase text-xs font-bold text-slate-500">
+                <tr>
+                    <th class="p-4">ID</th>
+                    <th class="p-4">Tài khoản</th>
+                    <th class="p-4">Họ tên</th>
+                    <th class="p-4">Quyền hạn</th>
+                    <th class="p-4 text-center">Hành động</th>
+                </tr>
+            </thead>
+            <tbody id="tblAccounts" class="divide-y"></tbody>
+        </table>
+    </div>
+</section>
+
+
     </main>
     <div id="patientModal" class="modal">
         <div class="bg-white rounded-xl shadow-2xl w-[500px] overflow-hidden">
@@ -251,11 +281,27 @@
             </div>
             <form id="doctorForm" onsubmit="saveDoctor(event)" class="p-6 space-y-4">
                 <input type="hidden" id="doctorId">
-                <input type="text" id="d_full_name" placeholder="Họ tên bác sĩ (*)" class="w-full border p-2 rounded" required>
-                <input type="text" id="d_specialty" placeholder="Chuyên khoa (*)" class="w-full border p-2 rounded" required>
-                <input type="text" id="d_phone" placeholder="Số điện thoại" class="w-full border p-2 rounded">
-                <input type="email" id="d_email" placeholder="Email" class="w-full border p-2 rounded">
-                <button type="submit" class="w-full bg-indigo-600 text-white py-3 rounded-lg font-bold">Lưu bác sĩ</button>
+                <input type="text" id="d_full_name" placeholder="Họ tên bác sĩ (*)"
+       class="w-full border p-2 rounded" required>
+<small id="fullNameError" class="text-red-500 text-xs"></small>
+
+<input type="text" id="d_specialty" placeholder="Chuyên khoa (*)"
+       class="w-full border p-2 rounded" required>
+<small id="specialtyError" class="text-red-500 text-xs"></small>
+
+<input type="text" id="d_phone" placeholder="Số điện thoại"
+       class="w-full border p-2 rounded">
+<small id="phoneError" class="text-red-500 text-xs"></small>
+
+<input type="email" id="d_email" placeholder="Email"
+       class="w-full border p-2 rounded">
+<small id="emailError" class="text-red-500 text-xs"></small>
+               <button
+    id="btnSubmitDoctor"
+    type="submit"
+    class="w-full bg-indigo-600 text-white py-3 rounded-lg font-bold shadow-lg hover:bg-indigo-700">
+    Lưu bác sĩ
+</button>
             </form>
         </div>
     </div>
@@ -310,8 +356,45 @@
             </form>
         </div>
     </div>
+    <!-- Modal Tài khoản -->
+<div id="accountModal" class="modal">
+    <div class="bg-white rounded-xl shadow-2xl w-[450px] overflow-hidden">
+        <div class="p-6 border-b bg-purple-50 flex justify-between items-center">
+            <h3 id="accountModalTitle" class="text-xl font-bold text-purple-700">Tài khoản hệ thống</h3>
+            <button onclick="closeModal('account')" class="text-2xl text-slate-400 hover:text-red-500">&times;</button>
+        </div>
+        <form id="accountForm" onsubmit="saveAccount(event)" class="p-6 space-y-4">
+            <input type="hidden" id="accountId">
+            <div>
+                <label class="text-xs font-bold uppercase text-slate-400">Tên đăng nhập (*)</label>
+                <input type="text" id="acc_username" class="w-full border p-2 rounded mt-1 outline-none focus:ring-2 focus:ring-purple-500" required>
+            </div>
+            <div>
+                <label class="text-xs font-bold uppercase text-slate-400">Họ và Tên (*)</label>
+                <input type="text" id="acc_full_name" class="w-full border p-2 rounded mt-1 outline-none focus:ring-2 focus:ring-purple-500" required>
+            </div>
+            <div>
+                <label class="text-xs font-bold uppercase text-slate-400">Mật khẩu (Để trống nếu không đổi)</label>
+                <input type="password" id="acc_password" class="w-full border p-2 rounded mt-1 outline-none focus:ring-2 focus:ring-purple-500">
+            </div>
+            <div>
+                <label class="text-xs font-bold uppercase text-slate-400">Quyền hạn</label>
+                <select id="acc_role" class="w-full border p-2 rounded mt-1">
+                    <option value="RECEPTIONIST">RECEPTIONIST (Nhân viên)</option>
+                    <option value="ADMIN">ADMIN (Quản trị)</option>
+                </select>
+            </div>
+            <div class="pt-4 flex justify-end gap-3 border-t">
+                <button type="button" onclick="closeModal('account')" class="px-4 py-2 text-slate-500 font-bold">Hủy</button>
+                <button type="submit" class="px-8 py-2 bg-purple-600 text-white rounded-lg font-bold shadow-lg">Lưu tài khoản</button>
+            </div>
+        </form>
+    </div>
+</div>
     <script>
-    const API_BASE = '/dental-clinic/public/api';
+   const API_BASE = window.location.hostname === 'localhost'
+    ? '/dental-clinic/public/api'
+    : 'https://postbox-excavator-unbaked.ngrok-free.dev/dental-clinic/public/api';
     const token = localStorage.getItem('token');
     const role = localStorage.getItem('role');
 
@@ -342,12 +425,17 @@
         if (tabId === 'services') loadServices();
         if (tabId === 'payments') loadPending();
         if (tabId === 'history') loadHistory();
+    
+        if (tabId === 'accounts') loadAccounts();
     }
 
     // 3. QUẢN LÝ BỆNH NHÂN & KHÁM BỆNH
     async function loadPatients() {
         try {
-            const res = await fetch(`${API_BASE}/patients`, { headers: { 'Authorization': token } });
+            const res = await fetch(`${API_BASE}/patients`, { 
+                headers: { 'Authorization': token,
+                    'ngrok-skip-browser-warning': 'true'
+                 } });
             const json = await res.json();
             const tbody = document.getElementById('tblPatients');
             tbody.innerHTML = json.data.map(p => `
@@ -373,7 +461,9 @@
         document.getElementById('examDiagnosis').value = "";
         selectedServicesForExam = [];
         renderExamServiceList();
-        const res = await fetch(`${API_BASE}/services`, { headers: {'Authorization': token} });
+        const res = await fetch(`${API_BASE}/services`, { headers: {'Authorization': token,
+            'ngrok-skip-browser-warning': 'true'
+        } });
         const json = await res.json();
         document.getElementById('examServiceSelect').innerHTML = json.data.map(s => `<option value="${s.id}" data-name="${s.service_name}">${s.service_name}</option>`).join('');
         document.getElementById('examinationModal').classList.add('active');
@@ -402,7 +492,9 @@
         e.preventDefault();
         if(selectedServicesForExam.length === 0) return alert("Vui lòng chọn dịch vụ!");
         const data = { patient_id: document.getElementById('examPatientId').value, doctor_id: 1, diagnosis: document.getElementById('examDiagnosis').value, services: selectedServicesForExam };
-        const res = await fetch(`${API_BASE}/payments`, { method: 'POST', headers: {'Content-Type': 'application/json', 'Authorization': token}, body: JSON.stringify(data) });
+        const res = await fetch(`${API_BASE}/payments`, { method: 'POST', headers: {'Content-Type': 'application/json', 'Authorization': token,
+            'ngrok-skip-browser-warning': 'true'
+        }, body: JSON.stringify(data) });
         if(res.ok) { alert("Đã chuyển sang Thanh toán!"); closeModal('examination'); switchTab('payments'); }
     }
 
@@ -410,7 +502,7 @@
     let currentBillServices = []; 
 
     async function loadPending() {
-        const res = await fetch(`${API_BASE}/payments/pending`, { headers: {'Authorization': token} });
+        const res = await fetch(`${API_BASE}/payments/pending`, { headers: {'Authorization': token, 'ngrok-skip-browser-warning': 'true'} });
         const json = await res.json();
         document.getElementById('listPending').innerHTML = json.data.map(item => `
             <div onclick="getBillDetails(${item.id}, '${item.patient_name}')" class="p-4 bg-white border rounded-lg cursor-pointer hover:border-blue-500 transition shadow-sm group">
@@ -428,7 +520,7 @@
         document.getElementById('currentRecordId').value = recordId;
 
         try {
-            const res = await fetch(`${API_BASE}/payments/${recordId}`, { headers: {'Authorization': token} });
+            const res = await fetch(`${API_BASE}/payments/${recordId}`, { headers: {'Authorization': token, 'ngrok-skip-browser-warning': 'true'} });
             const json = await res.json();
             currentBillServices = json.data || [];
             
@@ -454,7 +546,7 @@
     async function processCheckout() {
         const recordId = document.getElementById('currentRecordId').value;
         if(!confirm("Xác nhận thanh toán?")) return;
-        const res = await fetch(`${API_BASE}/payments`, { method: 'POST', headers: {'Content-Type': 'application/json', 'Authorization': token}, body: JSON.stringify({ record_id: recordId, services: currentBillServices }) });
+        const res = await fetch(`${API_BASE}/payments`, { method: 'POST', headers: {'Content-Type': 'application/json', 'Authorization': token, 'ngrok-skip-browser-warning': 'true'}, body: JSON.stringify({ record_id: recordId, services: currentBillServices }) });
         if (res.ok) {
             html2pdf().from(document.getElementById('invoiceContent')).save();
             alert("Thành công!");
@@ -469,22 +561,23 @@
  */
 async function loadHistory() {
     try {
-        // Gọi API lấy dữ liệu thống kê (bao gồm mảng history)
         const res = await fetch(`${API_BASE}/stats`, { 
-            headers: {'Authorization': token} 
+            headers: {'Authorization': token, 'ngrok-skip-browser-warning': 'true'} 
         });
         const json = await res.json();
         
         const tbody = document.getElementById('tblHistory');
         
-        // Kiểm tra nếu không có dữ liệu
-        if (!json.history || json.history.length === 0) {
+        // SỬA TẠI ĐÂY: Lấy mảng từ json.data.history
+        const historyData = json.data ? json.data.history : [];
+
+        if (!historyData || historyData.length === 0) {
             tbody.innerHTML = '<tr><td colspan="6" class="p-10 text-center text-slate-400 italic font-semibold">Chưa có giao dịch nào được thực hiện</td></tr>';
             return;
         }
 
-        // Đổ dữ liệu vào bảng
-        tbody.innerHTML = json.history.map(h => `
+        // SỬA TẠI ĐÂY: Dùng historyData để map
+        tbody.innerHTML = historyData.map(h => `
             <tr class="border-b hover:bg-slate-50 transition group">
                 <td class="p-4 font-mono font-bold text-blue-600">${formatID(h.id, 'HD')}</td>
                 <td class="p-4">
@@ -504,26 +597,19 @@ async function loadHistory() {
                 </td>
                 <td class="p-4 text-center">
                     <div class="flex justify-center gap-3">
-                        <button onclick="getBillDetails(${h.id}, '${h.patient_name}')" 
-                                class="text-blue-500 hover:bg-blue-50 p-2 rounded-lg transition shadow-sm" 
-                                title="Xem lại hóa đơn">
+                        <button onclick="getBillDetails(${h.id}, '${h.patient_name}')" class="text-blue-500 hover:bg-blue-50 p-2 rounded-lg transition shadow-sm">
                             <i class="fa-solid fa-eye"></i>
                         </button>
-                        
-                        <button onclick="deleteInvoice(${h.id})" 
-                                class="text-red-400 hover:text-red-600 hover:bg-red-50 p-2 rounded-lg transition shadow-sm" 
-                                title="Xóa vĩnh viễn">
+                        <button onclick="deleteInvoice(${h.id})" class="text-red-400 hover:text-red-600 hover:bg-red-50 p-2 rounded-lg transition shadow-sm">
                             <i class="fa-solid fa-trash"></i>
                         </button>
                     </div>
                 </td>
             </tr>`).join('');
-
     } catch (error) {
         console.error("Lỗi loadHistory:", error);
     }
 }
-
 /**
  * 2. Hàm xử lý xóa hóa đơn
  * Chức năng: Gửi lệnh DELETE về Server và cập nhật lại giao diện
@@ -537,7 +623,7 @@ async function deleteInvoice(id) {
     try {
         const res = await fetch(`${API_BASE}/payments/${id}`, {
             method: 'DELETE',
-            headers: { 'Authorization': token }
+            headers: { 'Authorization': token , 'ngrok-skip-browser-warning': 'true'}
         });
 
         const result = await res.json();
@@ -562,27 +648,55 @@ async function deleteInvoice(id) {
 }
 
     async function loadStats() {
-        const from = document.getElementById('statFrom').value;
-        const to = document.getElementById('statTo').value;
-        if(!from || !to) return;
-        const res = await fetch(`${API_BASE}/stats?from=${from}&to=${to}`, { headers: {'Authorization': token} });
-        const json = await res.json();
+    const from = document.getElementById('statFrom').value;
+    const to = document.getElementById('statTo').value;
+    if(!from || !to) return;
+    
+    const res = await fetch(`${API_BASE}/stats?from=${from}&to=${to}`, { 
+        headers: {'Authorization': token, 'ngrok-skip-browser-warning': 'true'} 
+    });
+    const json = await res.json();
+    
+    // SỬA TẠI ĐÂY: Truy cập qua json.data
+    if (json.data) {
         document.getElementById('statRevenue').innerText = formatMoney(json.data.total_revenue);
         document.getElementById('statVisits').innerText = json.data.total_visits;
     }
+}
 
     // 6. CÁC HÀM CƠ BẢN KHÁC (Doctors, Services, Modals)
     async function loadDoctors() { /* ... Giữ nguyên logic Fetch cũ nhưng nhớ map data ... */ }
     async function loadServices() { /* ... Giữ nguyên logic Fetch cũ nhưng nhớ map data ... */ }
    // Sửa hàm openModal để xóa trắng ID cũ khi bấm nút "Thêm"
-function openModal(type) {
-    if (type === 'patient') {
-        document.getElementById('patientId').value = ""; // Xóa sạch ID cũ
-        document.getElementById('patientForm').reset();   // Xóa sạch chữ trong ô nhập
-        document.getElementById('patientModalTitle').innerText = "Thêm Bệnh Nhân Mới";
-    }
+    function openModal(type) {
+    // Chỉ làm duy nhất 1 việc: Hiển thị Modal lên màn hình
     document.getElementById(type + 'Modal').classList.add('active');
+   }
+// Gọi hàm này khi nhấn nút "+ Thêm Bệnh Nhân"
+function prepareAddPatient() {
+    document.getElementById('patientId').value = ""; 
+    document.getElementById('patientForm').reset(); 
+    document.getElementById('patientModalTitle').innerText = "Thêm Bệnh Nhân Mới";
+    openModal('patient');
 }
+
+// Gọi hàm này khi nhấn nút "+ Thêm Bác Sĩ"
+function prepareAddDoctor() {
+    document.getElementById('doctorId').value = "";
+    document.getElementById('doctorForm').reset();
+    clearDoctorErrors();
+    document.getElementById('doctorModalTitle').innerText = "Thêm Bác Sĩ Mới";
+    openModal('doctor');
+}
+// Gọi hàm này khi nhấn nút "+ Thêm Dịch Vụ"
+function prepareAddService() {
+    document.getElementById('serviceId').value = ""; // Xóa sạch ID cũ để Backend hiểu là Thêm mới (POST)
+    document.getElementById('serviceForm').reset();   // Xóa sạch toàn bộ chữ đã nhập cũ trong form
+    document.getElementById('s_active').checked = true; // Mặc định tích chọn Đang kinh doanh
+    document.getElementById('serviceModalTitle').innerText = "Thêm Dịch Vụ Nha Khoa Mới"; // Đổi lại tiêu đề form
+    openModal('service'); // Sau khi dọn dẹp xong xuôi mới mở modal lên
+}
+
 
 
 
@@ -592,7 +706,7 @@ function openModal(type) {
 // TẢI DANH SÁCH BÁC SĨ
 async function loadDoctors() {
     try {
-        const res = await fetch(`${API_BASE}/doctors`, { headers: {'Authorization': token} });
+        const res = await fetch(`${API_BASE}/doctors`, { headers: {'Authorization': token, 'ngrok-skip-browser-warning': 'true'} });
         const json = await res.json();
         const tbody = document.getElementById('tblDoctors');
         
@@ -613,7 +727,7 @@ async function loadDoctors() {
 // TẢI DANH SÁCH DỊCH VỤ
 async function loadServices() {
     try {
-        const res = await fetch(`${API_BASE}/services`, { headers: {'Authorization': token} });
+        const res = await fetch(`${API_BASE}/services`, { headers: {'Authorization': token, 'ngrok-skip-browser-warning': 'true'} });
         const json = await res.json();
         const tbody = document.getElementById('tblServices');
         
@@ -641,7 +755,7 @@ async function deleteItem(resource, id, reloadFunc) {
     try {
         const res = await fetch(`${API_BASE}/${resource}/${id}`, {
             method: 'DELETE',
-            headers: {'Authorization': token}
+            headers: {'Authorization': token, 'ngrok-skip-browser-warning': 'true'}
         });
         if(res.ok) {
             alert("Đã xóa thành công!");
@@ -660,23 +774,26 @@ function deleteService(id) { deleteItem('services', id, loadServices); }
 
 // Sửa Bác sĩ
 async function editDoctor(id) {
-    const res = await fetch(`${API_BASE}/doctors/${id}`, { headers: {'Authorization': token} });
+    const res = await fetch(`${API_BASE}/doctors/${id}`, { 
+        headers: {'Authorization': token, 'ngrok-skip-browser-warning': 'true'} 
+    });
     const json = await res.json();
     const d = json.data;
     
     document.getElementById('doctorId').value = d.id;
     document.getElementById('d_full_name').value = d.full_name;
     document.getElementById('d_specialty').value = d.specialty;
-    document.getElementById('d_phone').value = d.phone;
-    document.getElementById('d_email').value = d.email;
+    document.getElementById('d_phone').value = d.phone || "";
+document.getElementById('d_email').value = d.email || "";
+    clearDoctorErrors();
+    document.getElementById('doctorModalTitle').innerText = "Cập nhật thông tin bác sĩ";
     
-    document.getElementById('doctorModalTitle').innerText = "Cập nhật bác sĩ";
     openModal('doctor');
 }
 
 // Sửa Dịch vụ
 async function editService(id) {
-    const res = await fetch(`${API_BASE}/services/${id}`, { headers: {'Authorization': token} });
+    const res = await fetch(`${API_BASE}/services/${id}`, { headers: {'Authorization': token, 'ngrok-skip-browser-warning': 'true'} });
     const json = await res.json();
     const s = json.data;
     
@@ -688,26 +805,95 @@ async function editService(id) {
     document.getElementById('serviceModalTitle').innerText = "Cập nhật dịch vụ";
     openModal('service');
 }
+function clearDoctorErrors() {
+    document.getElementById('fullNameError').innerText = "";
+    document.getElementById('specialtyError').innerText = "";
+    document.getElementById('phoneError').innerText = "";
+    document.getElementById('emailError').innerText = "";
+}
+
 async function saveDoctor(e) {
     e.preventDefault();
+
+    clearDoctorErrors();
+
     const id = document.getElementById('doctorId').value;
+
     const data = {
-        full_name: document.getElementById('d_full_name').value,
-        specialty: document.getElementById('d_specialty').value,
-        phone: document.getElementById('d_phone').value,
-        email: document.getElementById('d_email').value
+        full_name: document.getElementById('d_full_name').value.trim(),
+        specialty: document.getElementById('d_specialty').value.trim(),
+        phone: document.getElementById('d_phone').value.trim(),
+        email: document.getElementById('d_email').value.trim()
     };
-    
+
     const method = id ? 'PUT' : 'POST';
-    const url = id ? `${API_BASE}/doctors/${id}` : `${API_BASE}/doctors`;
-    
-    const res = await fetch(url, {
-        method: method,
-        headers: {'Content-Type': 'application/json', 'Authorization': token},
-        body: JSON.stringify(data)
-    });
-    
-    if(res.ok) { closeModal('doctor'); loadDoctors(); }
+    const url = id
+        ? `${API_BASE}/doctors/${id}`
+        : `${API_BASE}/doctors`;
+
+    try {
+        const res = await fetch(url, {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': token,
+                'ngrok-skip-browser-warning': 'true'
+            },
+            body: JSON.stringify(data)
+        });
+
+        const result = await res.json();
+        
+        
+        const msg = result.message || "Không thể lưu dữ liệu!";
+        
+
+        if (res.ok) {
+            alert(
+                result.message ||
+                (id
+                    ? "Đã cập nhật thông tin bác sĩ!"
+                    : "Đã thêm bác sĩ mới thành công!")
+            );
+
+            closeModal('doctor');
+            await loadDoctors();
+            return;
+        }
+
+        
+
+let hasShown = false;
+
+if (msg.includes("Họ tên")) {
+    document.getElementById('fullNameError').innerText = msg;
+    hasShown = true;
+}
+
+if (msg.includes("Chuyên khoa")) {
+    document.getElementById('specialtyError').innerText = msg;
+    hasShown = true;
+}
+
+if (msg.includes("Số điện thoại")) {
+    document.getElementById('phoneError').innerText = msg;
+    hasShown = true;
+}
+
+if (msg.includes("Email")) {
+    document.getElementById('emailError').innerText = msg;
+    hasShown = true;
+}
+
+if (!hasShown) {
+    alert(msg);
+}
+
+    }
+    catch (error) {
+        console.error("Lỗi saveDoctor:", error);
+        alert("Lỗi kết nối hệ thống!");
+    }
 }
 
 async function saveService(e) {
@@ -724,38 +910,36 @@ async function saveService(e) {
     
     const res = await fetch(url, {
         method: method,
-        headers: {'Content-Type': 'application/json', 'Authorization': token},
+        headers: {'Content-Type': 'application/json', 'Authorization': token, 'ngrok-skip-browser-warning': 'true'},
         body: JSON.stringify(data)
     });
     
-    if(res.ok) { closeModal('service'); loadServices(); }
+    if(res.ok) { 
+        document.getElementById('serviceId').value = ""; // Dọn dẹp ID phòng hờ
+        closeModal('service'); 
+        loadServices(); 
+    }
 }
+
 async function editPatient(id) {
     try {
-        // 1. Gọi API lấy thông tin chi tiết của 1 bệnh nhân
         const res = await fetch(`${API_BASE}/patients/${id}`, { 
-            headers: {'Authorization': token} 
+            headers: {'Authorization': token, 'ngrok-skip-browser-warning': 'true'} 
         });
         const json = await res.json();
         const p = json.data;
 
-        // 2. Điền dữ liệu vào các ô Input trong Modal
-        document.getElementById('patientId').value = p.id; // Quan trọng: ID để biết là đang sửa
+        // Điền dữ liệu (Lúc này không sợ bị reset nữa)
+        document.getElementById('patientId').value = p.id;
         document.getElementById('p_full_name').value = p.full_name;
         document.getElementById('p_phone').value = p.phone;
         document.getElementById('p_dob').value = p.dob;
         document.getElementById('p_address').value = p.address;
         document.getElementById('p_history').value = p.medical_history;
 
-        // 3. Đổi tiêu đề Modal cho đúng ngữ cảnh
         document.getElementById('patientModalTitle').innerText = "Cập nhật hồ sơ bệnh nhân";
-
-        // 4. Mở Modal lên
         openModal('patient');
-    } catch (e) {
-        console.error("Lỗi lấy thông tin bệnh nhân:", e);
-        alert("Không thể tải dữ liệu bệnh nhân!");
-    }
+    } catch (e) { console.error(e); }
 }
 async function savePatient(e) {
     e.preventDefault(); // Ngăn trang web tải lại (Reload)
@@ -788,7 +972,7 @@ async function savePatient(e) {
             method: method,
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': token
+                'Authorization': token, 'ngrok-skip-browser-warning': 'true'
             },
             body: JSON.stringify(data)
         });
@@ -817,6 +1001,84 @@ async function savePatient(e) {
         alert("Lỗi kết nối hệ thống! Hãy chắc chắn Apache/MySQL đang chạy.");
     }
 }
+    // TẢI DANH SÁCH TÀI KHOẢN
+async function loadAccounts(keyword = "") {
+    try {
+        const res = await fetch(`${API_BASE}/users?search=${keyword}`, { headers: {'Authorization': token, 'ngrok-skip-browser-warning': 'true'} });
+        const json = await res.json();
+        const tbody = document.getElementById('tblAccounts');
+        
+        tbody.innerHTML = json.data.map(u => `
+            <tr class="border-b hover:bg-purple-50 transition">
+                <td class="p-4 font-mono font-bold text-purple-600">${formatID(u.id, 'ACC')}</td>
+                <td class="p-4 font-bold">${u.username}</td>
+                <td class="p-4">${u.full_name}</td>
+                <td class="p-4">
+                    <span class="px-2 py-1 rounded text-[10px] font-bold ${u.role === 'ADMIN' ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'}">
+                        ${u.role}
+                    </span>
+                </td>
+                <td class="p-4 text-center space-x-2">
+                    <button onclick="editAccount(${u.id})" class="text-blue-500 hover:bg-blue-50 p-2 rounded"><i class="fa-solid fa-pen"></i></button>
+                    <button onclick="deleteAccount(${u.id})" class="text-red-500 hover:bg-red-50 p-2 rounded"><i class="fa-solid fa-trash"></i></button>
+                </td>
+            </tr>`).join('');
+    } catch (e) { console.error("Lỗi tải tài khoản:", e); }
+}
+
+function prepareAddAccount() {
+    document.getElementById('accountId').value = "";
+    document.getElementById('accountForm').reset();
+    document.getElementById('acc_username').readOnly = false;
+    document.getElementById('accountModalTitle').innerText = "Thêm Tài Khoản Mới";
+    openModal('account');
+}
+
+async function editAccount(id) {
+    const res = await fetch(`${API_BASE}/users/${id}`, { headers: {'Authorization': token, 'ngrok-skip-browser-warning': 'true'} });
+    const json = await res.json();
+    const u = json.data;
+    
+    document.getElementById('accountId').value = u.id;
+    document.getElementById('acc_username').value = u.username;
+    document.getElementById('acc_username').readOnly = true; // Không cho sửa username
+    document.getElementById('acc_full_name').value = u.full_name;
+    document.getElementById('acc_role').value = u.role;
+    document.getElementById('acc_password').value = ""; // Xóa trắng ô mật khẩu
+    
+    document.getElementById('accountModalTitle').innerText = "Cập nhật tài khoản";
+    openModal('account');
+}
+
+async function saveAccount(e) {
+    e.preventDefault();
+    const id = document.getElementById('accountId').value;
+    const data = {
+        username: document.getElementById('acc_username').value,
+        full_name: document.getElementById('acc_full_name').value,
+        password: document.getElementById('acc_password').value,
+        role: document.getElementById('acc_role').value
+    };
+    
+    const method = id ? 'PUT' : 'POST';
+    const url = id ? `${API_BASE}/users/${id}` : `${API_BASE}/users`;
+    
+    const res = await fetch(url, {
+        method: method,
+        headers: {'Content-Type': 'application/json', 'Authorization': token, 'ngrok-skip-browser-warning': 'true'},
+        body: JSON.stringify(data)
+    });
+    
+    if(res.ok) { closeModal('account'); loadAccounts(); }
+}
+
+function deleteAccount(id) { 
+    if (confirm("Xóa tài khoản này?")) {
+        deleteItem('users', id, loadAccounts); 
+    }
+}
+
+
 </script>
 </body>
 </html>

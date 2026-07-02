@@ -35,42 +35,66 @@
         window.location.href = 'dashboard.html';
     }
 
-    async function handleLogin(e) {
-        e.preventDefault();
+   async function handleLogin(e) {
+    e.preventDefault();
+    
+    // 1. Lấy thông tin và reset thông báo
+    const username = document.getElementById('user').value;
+    const password = document.getElementById('pass').value;
+    console.log("🚀 Đang gửi yêu cầu đăng nhập...");
 
-        console.log("Đang gửi request...");
+    try {
+        const res = await fetch('/dental-clinic/public/api/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password })
+        });
 
-        const username = document.getElementById('user').value;
-        const password = document.getElementById('pass').value;
+        // 2. Kiểm tra xem Server có trả về JSON không
+        const contentType = res.headers.get("content-type");
+        if (!contentType || !contentType.includes("application/json")) {
+            const textLoi = await res.text(); // Lấy nội dung lỗi thực tế (có thể là lỗi PHP)
+            console.error("Server trả về không phải JSON:", textLoi);
+            throw new Error("Server trả về lỗi định dạng (không phải JSON).");
+        }
 
-        try {
-            const res = await fetch('/dental-clinic/public/api/login', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    username: username,
-                    password: password
-                })
-            });
+        const result = await res.json(); // Đổi tên từ 'data' thành 'result' để tránh nhầm
+        console.log("📦 Dữ liệu từ Server:", result);
 
-            const data = await res.json();
-            console.log("Response:", data);
+        // 3. Xử lý logic nghiệp vụ
+        if (result.status === 'success') {
+            // Dùng biến tạm để truy cập túi dữ liệu bên trong
+            const payload = result.data; 
 
-            if (data.status === 'success') {
-                localStorage.setItem('token', data.token);
-                localStorage.setItem('role', data.user.role);
-                localStorage.setItem('fullName', data.user.full_name);
+            if (payload && payload.token && payload.user) {
+                // Lưu dữ liệu
+                localStorage.setItem('token', payload.token);
+                localStorage.setItem('role', payload.user.role);
+                localStorage.setItem('fullName', payload.user.full_name);
+                
+                console.log("✅ Đăng nhập thành công!");
                 window.location.href = 'dashboard.html';
             } else {
-                alert(data.message);
+                throw new Error("Dữ liệu trả về thiếu trường 'token' hoặc 'user'.");
             }
-        } catch (err) {
-            console.error("Lỗi fetch:", err);
-            alert("Không gọi được API!");
+        } else {
+            // Hiện thông báo lỗi cụ thể từ Backend (ví dụ: "Sai mật khẩu")
+            alert("Thất bại: " + (result.message || "Tài khoản không chính xác"));
+        }
+
+    } catch (err) {
+        // 4. Phân loại lỗi để báo cho người dùng chính xác
+        console.error("❌ Lỗi chi tiết:", err);
+        
+        if (err.message.includes("JSON")) {
+            alert("Lỗi Server: Phản hồi không đúng định dạng.");
+        } else if (err.message.includes("fetch")) {
+            alert("Lỗi mạng: Không thể kết nối tới API. Hãy kiểm tra XAMPP!");
+        } else {
+            alert("Lỗi hệ thống: " + err.message);
         }
     }
+}
 </script>
 ```
 

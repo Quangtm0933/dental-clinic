@@ -30,14 +30,10 @@ class StatsController extends BaseController {
         $history = Stats::getHistory();
 
         // 4. Trả về JSON theo cấu trúc mà Frontend (JavaScript) đang chờ đợi
-        $this->jsonResponse([
-            "status" => "success",
-            "data" => [
-                "total_revenue" => $totalRevenue,
-                "total_visits" => $totalVisits
-            ],
-            "history" => \App\Models\MedicalRecord::getHistory()
-
-        ]);
+        $this->jsonResponse("success", "Tải thống kê thành công", [
+           "total_revenue" => $totalRevenue,
+            "total_visits" => $totalVisits,
+           "history" => \App\Models\MedicalRecord::getHistory() // Gộp luôn history vào đây
+       ]);
     }
 }

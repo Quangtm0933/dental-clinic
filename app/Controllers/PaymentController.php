@@ -89,7 +89,7 @@ class PaymentController extends BaseController {
             $totalAmount += ($realPrice * (int)$item['quantity']);
         }
 
-        // staffId: ID của nhân viên thu tiền (mặc định 1 cho đồ án)
+        
         $staffId = 1; 
         
         if (MedicalRecord::completePayment($recordId, $totalAmount, $staffId)) {

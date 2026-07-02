@@ -1,0 +1,69 @@
+
+@baseUrl = http://localhost/dental-clinic/public/api
+
+### TEST API ĐĂNG NHẬP
+POST {{baseUrl}}/login
+Content-Type: application/json
+
+{
+    "username": "admin",
+    "password": "admin123"
+}
+
+### TEST LẤY DANH SÁCH BỆNH NHÂN (Ví dụ)
+GET {{baseUrl}}/patients
+Authorization: Bearer <MS0xNzc4MTQzMzcz>\
+
+###  THÊM MỚI BỆNH NHÂN
+POST http://localhost/dental-clinic/public/api/patients
+Content-Type: application/json
+Authorization: {MS0xNzc4MTQzMzcz}
+
+{
+    "full_name": "Nguyễn Văn Test",
+    "phone": "0988777666",
+    "address": "Hà Nội"
+}
+
+### LẬP HỒ SƠ KHÁM (Giai đoạn Bác sĩ)
+POST http://localhost/dental-clinic/public/api/payments
+Content-Type: application/json
+Authorization: {MS0xNzc4MTQzMzcz}
+
+{
+    "patient_id": 1,
+    "doctor_id": 1,
+    "diagnosis": "Sâu răng số 7, cần nhổ",
+    "services": [
+        {"service_id": 3, "quantity": 1}
+    ]
+}
+
+###  LẤY DANH SÁCH CHỜ THANH TOÁN
+GET http://localhost/dental-clinic/public/api/payments/pending
+Authorization: {MS0xNzc4MTQzMzcz}
+
+
+### TEST CHỨC NĂNG THANH TOÁN
+
+POST {{baseUrl}}/payments
+Content-Type: application/json
+Authorization: Bearer {MS0xNzc4MTQzMzcz}
+
+{
+    "record_id": 15,
+    "services": [
+        {
+            "service_id": 1,
+            "quantity": 1
+        },
+        {
+            "service_id": 4,
+            "quantity": 2
+        }
+    ]
+}
+
+### 7. XEM BÁO CÁO THỐNG KÊ (Admin)
+GET http://localhost/dental-clinic/public/api/stats?from=2026-01-01&to=2026-12-31
+Authorization: {MS0xNzc4MTQzMzcz}

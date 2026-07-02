@@ -73,7 +73,7 @@ class MedicalRecord {
     public static function createWithDetails($data) {
         $db = Database::getConnection();
         try {
-            $db->beginTransaction(); // Bắt đầu quá trình lưu an toàn
+            $db->beginTransaction(); // Bắt đầu quá trình lưu an toàn: hoặc lưu tất cả hoặc không
 
             // 1. Lưu vào bảng medical_records (Hóa đơn tổng)
             $sqlRecord = "INSERT INTO medical_records (patient_id, doctor_id, diagnosis, payment_status) VALUES (?, ?, ?, 'UNPAID')";

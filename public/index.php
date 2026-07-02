@@ -1,4 +1,6 @@
+
 <?php
+
 /**
  * ============================================================================
  * 1. KHỞI TẠO HỆ THỐNG & CẤU HÌNH (BOOTSTRAP)
@@ -57,7 +59,7 @@ use App\Controllers\AppointmentController;
 use App\Controllers\PaymentController;
 use App\Controllers\StatsController;
 use App\Controllers\ServiceController;
-
+use App\Controllers\UserController;
 /**
  * ============================================================================
  * 4. BỘ ĐỊNH TUYẾN CHÍNH (THE ROUTER)
@@ -100,6 +102,20 @@ try {
     // --- MODULE: DỊCH VỤ & BẢNG GIÁ ---
     elseif ($resource === 'services') {
         $controller = new ServiceController();
+        if ($method === 'GET') {
+            $id ? $controller->show($id) : $controller->index();
+        } elseif ($method === 'POST') {
+            $controller->store();
+        } elseif ($method === 'PUT' && $id) {
+            $controller->update($id);
+        } elseif ($method === 'DELETE' && $id) {
+            $controller->destroy($id);
+        }
+    }
+    // --- MODULE: QUẢN LÝ TÀI KHOẢN (USER MANAGEMENT) ---
+
+    elseif ($resource === 'users') {
+        $controller = new UserController();
         if ($method === 'GET') {
             $id ? $controller->show($id) : $controller->index();
         } elseif ($method === 'POST') {

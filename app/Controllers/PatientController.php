@@ -8,7 +8,7 @@ class PatientController extends BaseController {
 
     // GET /api/patients
     public function index() {
-        $this->checkAuth();
+        $this->checkAuth(); // kiểm tra xem đăng nhập chưa
         $this->jsonResponse([
             "status" => "success",
             "data" => Patient::getAll()
