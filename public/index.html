@@ -44,7 +44,7 @@
     console.log("🚀 Đang gửi yêu cầu đăng nhập...");
 
     try {
-        const res = await fetch('/dental-clinic/public/api/login', {
+        const res = await fetch('/public/api/login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ username, password })
