@@ -1,0 +1,8 @@
+.git
+.vscode
+vendor
+composer.phar
+.env
+*.zip
+*.log
+docker/mysql/*.sql.bak
