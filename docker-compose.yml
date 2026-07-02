@@ -18,7 +18,7 @@ services:
       - "3306:3306"
     environment:
       MYSQL_ROOT_PASSWORD: rootpassword
-      MYSQL_DATABASE: clinic_database
+      MYSQL_DATABASE: dental_clinic
     volumes:
       - db_data:/var/lib/mysql
 
