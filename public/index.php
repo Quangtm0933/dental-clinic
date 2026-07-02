@@ -1,6 +1,4 @@
-
 <?php
-
 /**
  * ============================================================================
  * 1. KHỞI TẠO HỆ THỐNG & CẤU HÌNH (BOOTSTRAP)
@@ -28,6 +26,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
  * Tách URL thành các phần để xác định: Resource (Mục nào) và ID (Cụ thể ai).
  */
 $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+$uri = str_replace('/public', '', $uri);
 // Xử lý đường dẫn linh hoạt (Xóa bỏ phần thư mục cha nếu có)
 $path = str_ireplace('/dental-clinic/public', '', $uri); 
 $path = trim($path, '/');
