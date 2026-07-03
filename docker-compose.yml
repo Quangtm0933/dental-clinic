@@ -3,7 +3,7 @@ version: '3.8'
 services:
   web:
     build: .
-    container_name: clinic_web
+    container_name: clinic_web phòng khám nha khoa 1
     ports:
       - "8080:80"
     volumes:
